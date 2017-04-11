@@ -58,6 +58,27 @@
      [self createSliderItemView];
 }
 
+- (void)setTitleFont:(UIFont *)titleFont {
+    
+    _titleFont = titleFont;
+    
+    [self setNeedsDisplay];
+}
+
+- (void)setSliderAlignment:(SliderViewAlignment)sliderAlignment {
+    
+    _sliderAlignment = sliderAlignment;
+    
+    [self setNeedsDisplay];
+}
+
+- (void)setBottomViewTopConstraint:(CGFloat)bottomViewTopConstraint {
+    
+    _bottomViewTopConstraint = bottomViewTopConstraint;
+    
+    [self setNeedsDisplay];;
+}
+
 // 设置偏移量
 - (void)setIndexOffset:(CGFloat)indexOffset {
     _indexOffset = indexOffset;
@@ -106,6 +127,9 @@
         
         _itemSpace = 30;
         _indexOffset = 0.0;
+        _bottomViewTopConstraint = 3;
+        _titleFont = [UIFont fontWithName:@"PingFang SC" size:13];
+        _sliderAlignment = SliderViewAlignmentDefault;
         _normalColor = [UIColor grayColor];
         _selectColor = [UIColor redColor];
         _bottomColor = [UIColor redColor];
@@ -115,7 +139,7 @@
         _scrollView.bounces = NO;
         _scrollView.showsHorizontalScrollIndicator = NO;
         [self addSubview:_scrollView];
- 
+        
     }
     return self;
 }
@@ -125,7 +149,6 @@
     for (int i = 0; i < self.itemArray.count; i++) {
         
         SliderItemView *itemView = [[SliderItemView alloc]init];
-        itemView.tag = i ;
         itemView.textAlignment = NSTextAlignmentCenter;
         itemView.textColor = _normalColor;
         itemView.fillColor = _selectColor;
@@ -133,16 +156,27 @@
         itemView.userInteractionEnabled = YES;
         if (i == 0) {
             itemView.progress = 1;
-            itemView.font = [UIFont systemFontOfSize:16];
+            itemView.font = self.titleFont;
         }else{
             itemView.progress = 0;
-            itemView.font = [UIFont systemFontOfSize:14];
+            itemView.font = self.titleFont;
         }
-        CGFloat width = [itemView.text getStringWidth:[UIFont systemFontOfSize:14] Height:20]+self.itemSpace;
-        CGFloat height = self.frame.size.height;
+        itemView.tag = i;
+        CGFloat width = 0;
+        if (self.sliderAlignment == SliderViewAlignmentLeft)
+        {
+            width = [itemView.text getStringWidth:self.titleFont Height:20]+self.itemSpace;
+        }
+        else
+        {
+            width = self.frame.size.width / self.itemArray.count;
+        }
+        
+        
+        CGFloat height = 16;//[itemView.text getStringHeight:self.titleFont width:width];
         CGFloat x = 0;
         x = i>0 ? CGRectGetMaxX(((SliderItemView *)self.sliderItemViewArray[i-1]).frame):0;
-        CGFloat y = 0;
+        CGFloat y = (self.frame.size.height - height) / 2 - 3;
         itemView.frame = CGRectMake(x, y, width, height);
         
         [self.scrollView addSubview:itemView];
@@ -150,32 +184,40 @@
         [_sliderItemViewArray addObject:itemView];
         
         
-        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tap:)];
-        [itemView addGestureRecognizer:tap];
+        UIControl *control = [[UIControl alloc]initWithFrame:CGRectMake(x, 0, width, self.frame.size.height)];
+        control.tag = i;
+        [control addTarget:self action:@selector(tap:) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:control];
     }
     
     SliderItemView *itemView = (SliderItemView *)[self.sliderItemViewArray objectAtIndex:0];
-    _sliderBottomView = [[UIView alloc]initWithFrame:CGRectMake(itemView.center.x-([itemView.text getStringWidth:[UIFont systemFontOfSize:14] Height:20])/2,
-                                                                self.frame.size.height - 3,
-                                                                [itemView.text getStringWidth:[UIFont systemFontOfSize:14] Height:20],
-                                                                3)];
-    _sliderBottomView.backgroundColor = _bottomColor;
-    [self.scrollView addSubview:_sliderBottomView];
+    self.sliderBottomView = [[UIView alloc]initWithFrame:CGRectMake(itemView.center.x-([itemView.text getStringWidth:self.titleFont Height:20])/2,
+                                                                CGRectGetMaxY(itemView.frame) + self.bottomViewTopConstraint,
+                                                                [itemView.text getStringWidth:self.titleFont Height:20],
+                                                                5)];
+    self.sliderBottomView.layer.cornerRadius = 2.5;
+    self.sliderBottomView.layer.masksToBounds = YES;
+    self.sliderBottomView.backgroundColor = self.bottomColor;
+    [self.scrollView addSubview:self.sliderBottomView];
     
     CGFloat maxX = CGRectGetMaxX(((SliderItemView*)self.sliderItemViewArray.lastObject).frame);
     if (maxX < self.frame.size.width) {
         maxX = self.frame.size.width;
     }
-    _scrollView.contentSize = CGSizeMake(maxX, self.frame.size.height);
+    self.scrollView.contentSize = CGSizeMake(maxX, self.frame.size.height);
 }
 
 #pragma mark - tap
 
-- (void)tap:(UITapGestureRecognizer *)tap {
+- (void)tap:(UIControl *)tap {
+    
+    [UIView animateWithDuration:0.25 animations:^{
+        self.indexOffset = tap.tag;
+    }];
     
     if (self.delegate && [self.delegate respondsToSelector:@selector(sliderView:slideAtIndex:)]) {
         
-        [self.delegate sliderView:self slideAtIndex:(tap.view.tag)];
+        [self.delegate sliderView:self slideAtIndex:(tap.tag)];
     }
 }
 
@@ -192,10 +234,10 @@
 
     if (progress == 0) {
         // 纠正偏移量的误差
-        _sliderBottomView.frame = CGRectMake(currentItemView.center.x-([currentItemView.text getStringWidth:[UIFont systemFontOfSize:14] Height:20])/2,
-                                                                    self.frame.size.height - 3,
-                                                                    [currentItemView.text getStringWidth:[UIFont systemFontOfSize:14] Height:20],
-                                                                    3);
+        _sliderBottomView.frame = CGRectMake(currentItemView.center.x-([currentItemView.text getStringWidth:self.titleFont Height:20])/2,
+                                                                    CGRectGetMaxY(currentItemView.frame)+3,
+                                                                    [currentItemView.text getStringWidth:self.titleFont Height:20],
+                                                                    5);
         [self scrollSelectViewToMiddleWithSelectItem:currentItemView];
         return;
     }
@@ -211,18 +253,16 @@
         x = CGRectGetMinX(currentItemView.frame) + self.itemSpace/2 +  (CGRectGetMaxX(currentItemView.frame) - CGRectGetMinX(currentItemView.frame))*progress;
         w = CGRectGetWidth(currentItemView.frame) - self.itemSpace + (CGRectGetWidth(currentItemView.frame)  - CGRectGetWidth(currentItemView.frame))*progress;
         
-        currentItemView.font = [UIFont systemFontOfSize:16-ABS(2*progress)];
+        currentItemView.font = [UIFont fontWithName:self.titleFont.fontName size:(self.titleFont.pointSize + 3)-ABS(2*progress)];
     }else{
         
         x = CGRectGetMinX(currentItemView.frame) + self.itemSpace/2 + (CGRectGetMinX(nextItemView.frame) - CGRectGetMinX(currentItemView.frame))*progress;
         w = CGRectGetWidth(currentItemView.frame) - self.itemSpace + (CGRectGetWidth(nextItemView.frame) - CGRectGetWidth(currentItemView.frame))*progress;
-        
-        currentItemView.font = [UIFont systemFontOfSize:16-2*progress];
-        nextItemView.font = [UIFont systemFontOfSize:14 + 2*progress];
-        
+        currentItemView.font = [UIFont fontWithName:self.titleFont.fontName size:(self.titleFont.pointSize + 3)-ABS(2*progress)];
+        nextItemView.font = [UIFont fontWithName:self.titleFont.fontName size:self.titleFont.pointSize+ABS(2*progress)];
     }
     
-    _sliderBottomView.frame = CGRectMake(x, self.frame.size.height-3, w, 3);
+    _sliderBottomView.frame = CGRectMake(x, CGRectGetMaxY(currentItemView.frame)+3, w, 5);
 }
 
 // 将选中的 item 移到屏幕中间

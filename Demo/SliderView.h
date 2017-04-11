@@ -8,6 +8,13 @@
 
 #import <UIKit/UIKit.h>
 
+typedef NS_ENUM(NSUInteger, SliderViewAlignment)
+{
+    SliderViewAlignmentDefault = 1,
+    SliderViewAlignmentJustified = 2,
+    SliderViewAlignmentLeft = SliderViewAlignmentDefault
+};
+
 @class SliderView;
 
 @protocol SliderViewDelegate <NSObject>
@@ -43,7 +50,7 @@
 @property (nonatomic, assign) CGFloat itemSpace;
 
 /*!
- *  @brief 偏移量
+ *  @brief 偏移量 (default 传入对应的 scrollview 的 contentOffset/width)
  */
 @property (nonatomic, assign) CGFloat indexOffset;
 
@@ -61,6 +68,23 @@
  *  @brief 底部线条颜色 (default = redColor)
  */
 @property (nonatomic, strong) UIColor *bottomColor;
+
+/**
+ *  @brief 底部指示 view 和 title 之间的间隙 (default = 3)
+ */
+@property (nonatomic, assign) CGFloat bottomViewTopConstraint;
+
+
+/**
+ *  @brief 标题字体 （default = pingfang SC 13）
+ */
+@property (nonatomic, strong) UIFont *titleFont;
+
+
+/**
+ *  @brief 对齐方式， （default = SliderViewAlignmentLeft）
+ */
+@property (nonatomic, assign) SliderViewAlignment sliderAlignment;
 
 @end
 

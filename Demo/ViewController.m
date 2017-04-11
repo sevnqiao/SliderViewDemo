@@ -48,7 +48,7 @@
 
 - (void)sliderView:(SliderView *)sliderView slideAtIndex:(NSInteger)index
 {
-    [self.scrollView setContentOffset:CGPointMake(self.view.frame.size.width * index, 0) animated:YES];
+//    [self.scrollView setContentOffset:CGPointMake(self.view.frame.size.width * index, 0) animated:YES];
 }
 
 
