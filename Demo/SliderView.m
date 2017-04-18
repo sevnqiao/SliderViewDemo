@@ -55,6 +55,11 @@
     
     _itemArray = itemArray;
     
+    if (self.indexOffset >= itemArray.count)
+    {
+        self.indexOffset = itemArray.count-1;
+    }
+    
      [self createSliderItemView];
 }
 
@@ -125,20 +130,20 @@
     self = [super initWithFrame:frame];
     if (self) {
         
-        _itemSpace = 30;
-        _indexOffset = 0.0;
-        _bottomViewTopConstraint = 3;
-        _titleFont = [UIFont fontWithName:@"PingFang SC" size:13];
-        _sliderAlignment = SliderViewAlignmentDefault;
-        _normalColor = [UIColor grayColor];
-        _selectColor = [UIColor redColor];
-        _bottomColor = [UIColor redColor];
-        _sliderItemViewArray = [NSMutableArray arrayWithCapacity:self.itemArray.count];
+        self.itemSpace = 30;
+        self.indexOffset = 0.0;
+        self.bottomViewTopConstraint = 3;
+        self.titleFont = [UIFont systemFontOfSize:13];
+        self.sliderAlignment = SliderViewAlignmentDefault;
+        self.normalColor = [UIColor grayColor];
+        self.selectColor = [UIColor redColor];
+        self.bottomColor = [UIColor redColor];
+        self.sliderItemViewArray = [NSMutableArray arrayWithCapacity:self.itemArray.count];
         
-        _scrollView = [[UIScrollView alloc]initWithFrame:frame];
-        _scrollView.bounces = NO;
-        _scrollView.showsHorizontalScrollIndicator = NO;
-        [self addSubview:_scrollView];
+        self.scrollView = [[UIScrollView alloc]initWithFrame:frame];
+        self.scrollView.bounces = NO;
+        self.scrollView.showsHorizontalScrollIndicator = NO;
+        [self addSubview:self.scrollView];
         
     }
     return self;
@@ -154,7 +159,7 @@
         itemView.fillColor = _selectColor;
         itemView.text = [self.itemArray objectAtIndex:i];
         itemView.userInteractionEnabled = YES;
-        if (i == 0) {
+        if (i == self.indexOffset) {
             itemView.progress = 1;
             itemView.font = self.titleFont;
         }else{
@@ -172,8 +177,7 @@
             width = self.frame.size.width / self.itemArray.count;
         }
         
-        
-        CGFloat height = 16;//[itemView.text getStringHeight:self.titleFont width:width];
+        CGFloat height = [itemView.text boundingRectWithSize:CGSizeMake(width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:nil context:nil].size.height;
         CGFloat x = 0;
         x = i>0 ? CGRectGetMaxX(((SliderItemView *)self.sliderItemViewArray[i-1]).frame):0;
         CGFloat y = (self.frame.size.height - height) / 2 - 3;
@@ -190,7 +194,7 @@
         [self addSubview:control];
     }
     
-    SliderItemView *itemView = (SliderItemView *)[self.sliderItemViewArray objectAtIndex:0];
+    SliderItemView *itemView = (SliderItemView *)[self.sliderItemViewArray objectAtIndex:self.indexOffset];
     self.sliderBottomView = [[UIView alloc]initWithFrame:CGRectMake(itemView.center.x-([itemView.text getStringWidth:self.titleFont Height:20])/2,
                                                                 CGRectGetMaxY(itemView.frame) + self.bottomViewTopConstraint,
                                                                 [itemView.text getStringWidth:self.titleFont Height:20],
@@ -235,7 +239,7 @@
     if (progress == 0) {
         // 纠正偏移量的误差
         _sliderBottomView.frame = CGRectMake(currentItemView.center.x-([currentItemView.text getStringWidth:self.titleFont Height:20])/2,
-                                                                    CGRectGetMaxY(currentItemView.frame)+3,
+                                                                    CGRectGetMaxY(currentItemView.frame)+self.bottomViewTopConstraint,
                                                                     [currentItemView.text getStringWidth:self.titleFont Height:20],
                                                                     5);
         [self scrollSelectViewToMiddleWithSelectItem:currentItemView];
@@ -262,7 +266,7 @@
         nextItemView.font = [UIFont fontWithName:self.titleFont.fontName size:self.titleFont.pointSize+ABS(2*progress)];
     }
     
-    _sliderBottomView.frame = CGRectMake(x, CGRectGetMaxY(currentItemView.frame)+3, w, 5);
+    _sliderBottomView.frame = CGRectMake(x, CGRectGetMaxY(currentItemView.frame)+self.bottomViewTopConstraint, w, 5);
 }
 
 // 将选中的 item 移到屏幕中间

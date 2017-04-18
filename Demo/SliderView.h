@@ -45,12 +45,13 @@ typedef NS_ENUM(NSUInteger, SliderViewAlignment)
 @property (nonatomic, strong) NSArray *itemArray;
 
 /*!
- *  @brief item 间距 （default = 30）
+ *  @brief item 间距 （default = 30， SliderViewAlignmentJustified 时 此项不支持）
  */
 @property (nonatomic, assign) CGFloat itemSpace;
 
 /*!
  *  @brief 偏移量 (default 传入对应的 scrollview 的 contentOffset/width)
+           若要选中某一个item，直接 indexOffset = NSIntenger
  */
 @property (nonatomic, assign) CGFloat indexOffset;
 
