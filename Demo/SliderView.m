@@ -191,7 +191,7 @@
         UIControl *control = [[UIControl alloc]initWithFrame:CGRectMake(x, 0, width, self.frame.size.height)];
         control.tag = i;
         [control addTarget:self action:@selector(tap:) forControlEvents:UIControlEventTouchUpInside];
-        [self addSubview:control];
+        [self.scrollView addSubview:control];
     }
     
     SliderItemView *itemView = (SliderItemView *)[self.sliderItemViewArray objectAtIndex:self.indexOffset];
@@ -273,19 +273,22 @@
 - (void)scrollSelectViewToMiddleWithSelectItem:(SliderItemView *)itemView {
 
     CGFloat offsetX = (self.frame.size.width - itemView.frame.size.width) / 2;
+    CGPoint contentOffset = CGPointZero;
     
     if (itemView.frame.origin.x <= self.frame.size.width / 2)
     {
-        [self.scrollView setContentOffset:CGPointMake(0, 0) animated:YES];
+        contentOffset = CGPointZero;
     }
     else if (CGRectGetMaxX(itemView.frame) >= (self.scrollView.contentSize.width - self.frame.size.width / 2))
     {
-        [self.scrollView setContentOffset:CGPointMake(self.scrollView.contentSize.width - self.frame.size.width, 0) animated:YES];
+        contentOffset = CGPointMake(self.scrollView.contentSize.width - self.frame.size.width, 0);
     }
     else
     {
-        [self.scrollView setContentOffset:CGPointMake(CGRectGetMinX(itemView.frame) - offsetX, 0) animated:YES];
+        contentOffset = CGPointMake(CGRectGetMinX(itemView.frame) - offsetX, 0);
     }
+    
+    [self.scrollView setContentOffset:contentOffset animated:YES];
 }
 
 @end
